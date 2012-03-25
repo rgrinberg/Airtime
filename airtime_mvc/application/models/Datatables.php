@@ -76,12 +76,12 @@ class Application_Model_Datatables {
 	
 		try {
 			$r = $con->query($sqlTotalRows);
-			Logging::log($sqlTotalRows);
+			//Logging::log($sqlTotalRows);
 			$totalRows = $r->fetchColumn(0);
 	
 			if (isset($sqlTotalDisplayRows)) {
 				$r = $con->query($sqlTotalDisplayRows);
-				Logging::log($sqlTotalDisplayRows);
+				//Logging::log($sqlTotalDisplayRows);
 				$totalDisplayRows = $r->fetchColumn(0);
 			}
 			else {
@@ -97,7 +97,7 @@ class Application_Model_Datatables {
 		}
 	
 		//display sql executed in airtime log for testing
-		Logging::log($sql);
+		//Logging::log($sql);
 	
 		return array(
 			"sEcho" => intval($data["sEcho"]), 

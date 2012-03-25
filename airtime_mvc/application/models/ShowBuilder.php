@@ -277,7 +277,7 @@ class Application_Model_ShowBuilder {
     public function hasBeenUpdatedSince($timestamp) {
         $outdated = false;
 
-        Logging::log("checking if show builder has been updated since {$timestamp}");
+        //Logging::log("checking if show builder has been updated since {$timestamp}");
 
         $shows = Application_Model_Show::getShows($this->startDT, $this->endDT);
 

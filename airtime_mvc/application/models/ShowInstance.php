@@ -659,7 +659,7 @@ class Application_Model_ShowInstance {
             FROM (cc_schedule AS s LEFT JOIN cc_files AS f ON f.id = s.file_id)
             WHERE s.instance_id = '{$this->_instanceId}' ORDER BY starts";
 
-        Logging::log($sql);
+        //Logging::log($sql);
 
         $results = $CC_DBC->GetAll($sql);
 
@@ -730,7 +730,7 @@ class Application_Model_ShowInstance {
         ." AND si.id = $instanceId"
         ." ORDER BY si.starts, st.starts";
 
-        Logging::log($sql);
+        //Logging::log($sql);
 
         return $CC_DBC->GetAll($sql);
     }
