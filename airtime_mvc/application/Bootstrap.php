@@ -5,7 +5,7 @@ Logging::setLogPath('/var/log/airtime/zendphp.log');
 
 require_once __DIR__."/configs/conf.php";
 
-require_once __DIR__."/configs/ACL.php";
+//require_once __DIR__."/configs/ACL.php";
 require_once 'propel/runtime/lib/Propel.php';
 Propel::init(__DIR__."/configs/airtime-conf-production.php");
 
@@ -14,6 +14,7 @@ require_once 'DB.php';
 
 require_once 'Preference.php';
 require_once __DIR__.'/controllers/plugins/RabbitMqPlugin.php';
+require_once __DIR__.'/controllers/plugins/Rest_Acl_Plugin.php';
 
 global $CC_CONFIG, $CC_DBC;
 $dsn = $CC_CONFIG['dsn'];
@@ -36,8 +37,9 @@ Zend_Validate::setDefaultNamespaces("Zend");
 
 $front = Zend_Controller_Front::getInstance();
 $front->registerPlugin(new RabbitMqPlugin());
+$front->registerPlugin(new Rest_Acl_Plugin());
 
-//Logging::debug($_SERVER['REQUEST_URI']);
+Logging::log($_SERVER['REQUEST_URI']);
 
 /* The bootstrap class should only be used to initialize actions that return a view.
    Actions that return JSON will not use the bootstrap class! */
@@ -144,6 +146,12 @@ class Bootstrap extends Zend_Application_Bootstrap_Bootstrap
                 'controller' => 'auth',
                 'action' => 'password-change',
             )));
+        
+        $frontController = Zend_Controller_Front::getInstance();
+        $restRoute = new Zend_Rest_Route($frontController, array(), array("rest"));
+        $frontController->getRouter()->addRoute('rest', $restRoute);
+        
     }
+    
 }
 

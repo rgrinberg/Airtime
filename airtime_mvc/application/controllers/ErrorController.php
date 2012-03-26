@@ -48,7 +48,8 @@ class ErrorController extends Zend_Controller_Action
 
     public function deniedAction()
     {
-        // action body
+        $this->view->layout()->disableLayout();
+        $this->_helper->ViewRenderer->setNoRender(true);
     }
 
 
