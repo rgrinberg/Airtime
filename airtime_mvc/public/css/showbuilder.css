@@ -12,6 +12,20 @@
 	margin-left: -16px;
 }
 
+.sb-content .fg-toolbar ul {
+	float: left;
+	padding: 0;
+	margin: 0.5em 0 0 0;
+	cursor: pointer;
+}
+
+.sb-content .fg-toolbar ul li {
+    list-style-type: none;
+    float: left;
+    padding: 1px 2px;
+    margin-right: 5px;
+}
+
 .sb-padded {
 	/*
 	the padding is needed here so that the cursor arrows with a negative margin are displayable.
@@ -39,6 +53,10 @@
 	top: 3px;
 }
 
+.sb-content fieldset {
+    margin-bottom: 8px;
+}
+
 .sb-content fieldset.closed {
 	border-width: 1px 0 0;
     margin-bottom: -16px;
@@ -60,6 +78,12 @@
 table.datatable tr.cursor-selected-row td, table.datatable tr.cursor-selected-row th {
     border-bottom: 1px solid rgba(215, 0, 0, 1) !important;
 }
+
+.sb-starts,
+.sb-ends {
+	text-align: center;
+}
+
 .innerWrapper {
     position:relative;
     width:100%;
@@ -87,6 +111,11 @@ tr.cursor-selected-row .marker {
 
 .sb-content .sb-past {
 	opacity: .6;
+}
+
+.sb-placeholder {
+    height: 35px;
+    padding: 5px;
 }
 
 .sb-boundry td.sb-image, 
@@ -204,8 +233,4 @@ table.datatable tr.sb-header.odd:hover td, table.datatable tr.sb-header.even:hov
 
 .ui-dialog .sb_content .padded {
     padding: 5px 10px 5px 16px;
-}
-
-.ui-dialog .ui-buttonset {
-    margin-right: 0 !important;
 }
