@@ -5,16 +5,11 @@
 class Rest_PlaylistController extends Zend_Controller_Action
 {
 
-    //private $_lang = array();
-
     public function init()
     {
-        Logging::log("Rest_PlaylistController");
-        /* Initialize action controller here */
-        $context = $this->_helper->getHelper('contextSwitch');
-        $context->addActionContext('index', 'json')->initContext();;
-
-        //$this->_lang = Zend_Registry::get("Custom_language");
+        Logging::log(__CLASS__.":".__FUNCTION__);
+        $this->view->layout()->disableLayout();
+        $this->_helper->viewRenderer->setNoRender(true);
     }
 
    /**
@@ -22,14 +17,48 @@ class Rest_PlaylistController extends Zend_Controller_Action
     */
     public function indexAction()
     {
-        Logging::log("Rest Playlist Index Action");
-
-        // disable the view and the layout
-        $this->view->layout()->disableLayout();
-        $this->_helper->viewRenderer->setNoRender(true);
-
-        $jsonStr = json_encode(array("playlist"=>"foo"));
-        echo $jsonStr;
-
+        Logging::log(__CLASS__.":".__FUNCTION__);
     }
+    
+    /**
+     * Fetch the requested playlist.
+     */
+    public function getAction()
+    {
+        Logging::log(__CLASS__.":".__FUNCTION__);
+        try {
+            $id = $this->_getParam("id");
+    
+            try {
+                $pl = new Application_Model_Playlist($id, null, false);
+            } catch (PlaylistNotFoundException $ple) {
+                // if not found, return 404
+                $this->getResponse()->setHttpResponseCode(404)
+                    ->appendBody("Playlist $id not found.\n");
+                return;                
+            }
+            $outPl = array();
+            $outPl["name"] = $pl->getName();
+            $outPl["description"] = $pl->getDescription();
+            $outPl["contents"] = $pl->getContents();
+            $contents = $pl->getContents();
+                        
+            $this->getResponse()
+                ->setHttpResponseCode(200)
+                ->appendBody(json_encode($outPl)."\n");
+        } catch (Exception $e) {
+            echo $e;
+        }
+    }
+
+    /**
+     * Create a new playlist.
+     */
+    public function putAction()
+    {
+        Logging::log(__CLASS__.":".__FUNCTION__);
+        $pl = new Application_Model_Playlist();
+        echo json_encode($pl->getId());
+    }
+    
 }

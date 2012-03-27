@@ -47,33 +47,56 @@ class Application_Model_Playlist {
 	);
 
 
-    public function __construct($id=null, $con=null)
+    /**
+     * If an ID is given, try to fetch that playlist from the database.
+     * If it is not found, throw a PlaylistNotFound Exception.
+     * 
+     * If an ID is not given, create a new playlist in the database.
+     * 
+     * @param int $p_id
+     * @param Propel_Connection $p_con
+     * @param boolean $p_createIfNotExists
+     *     Insert a row in the database if not found.
+     *     
+     * @throws PlaylistNotFoundException
+     */
+    public function __construct($p_id=null, $p_con=null, $p_createIfNotExists = true)
     {
-        if (isset($id)) {
-            $this->pl = CcPlaylistQuery::create()->findPK($id);
-
+        $this->pl = null;
+        $this->id = null;
+        if (!is_null($p_id)) {
+            $this->pl = CcPlaylistQuery::create()->findPK($p_id);
             if (is_null($this->pl)) {
                 throw new PlaylistNotFoundException();
             }
-        }
-        else {
+            $this->id = $this->pl->getDbId();
+        } 
+        elseif ($p_createIfNotExists) {
+            // Create a new one
             $this->pl = new CcPlaylist();
             $this->pl->setDbUTime("now", new DateTimeZone("UTC"));
             $this->pl->save();
+            $this->id = $this->pl->getDbId();
         }
 
         $defaultFade = Application_Model_Preference::GetDefaultFade();
         if ($defaultFade !== "") {
             //fade is in format SS.uuuuuu
-
             $this->plItem["fadein"] = $defaultFade;
             $this->plItem["fadeout"] = $defaultFade;
         }
 
-        $this->con = isset($con) ? $con : Propel::getConnection(CcPlaylistPeer::DATABASE_NAME);
-        $this->id = $this->pl->getDbId();
+        $this->con = isset($p_con) ? $p_con : Propel::getConnection(CcPlaylistPeer::DATABASE_NAME);
     }
 
+    /**
+     * Return true if this playlist exists in the database.
+     */
+    public function exists()
+    {
+        return !is_null($this->id);
+    }
+    
     /**
      * Return local ID of virtual file.
      *

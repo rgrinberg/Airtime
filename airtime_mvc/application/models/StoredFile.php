@@ -279,10 +279,10 @@ class Application_Model_StoredFile {
     /**
      * Delete stored virtual file
      *
-     * @param boolean $p_deleteFile
+     * @param boolean $p_deleteFromPlaylist
      *
      */
-    public function delete($deleteFromPlaylist=false)
+    public function delete($p_deleteFromPlaylist=false)
     {
 
         $filepath = $this->getFilePath();
@@ -298,7 +298,7 @@ class Application_Model_StoredFile {
             Application_Model_RabbitMq::SendMessageToMediaMonitor("file_delete", $data);
         }
 
-        if ($deleteFromPlaylist){
+        if ($p_deleteFromPlaylist){
             Application_Model_Playlist::DeleteFileFromAllPlaylists($this->getId());
         }
 
@@ -672,6 +672,16 @@ Logging::log("getting media! - 2");
         return $results;
     }
 
+    /**
+     * Use this to add a file to the server.
+     * This function expects:
+     *   $_FILES["file"] as the file.
+     *   $_REQUEST["name"] as what you want to call the file on disk.
+     * 
+     * @param string $p_targetDir
+     *     
+     * @return string
+     */
     public static function uploadFile($p_targetDir)
     {
         // HTTP headers for no cache etc
@@ -771,8 +781,9 @@ Logging::log("getting media! - 2");
     }
 
     /**
-     * Check, using disk_free_space, the space available in the $destination_folder folder to see if it has
-     * enough space to move the $audio_file into and report back to the user if not.
+     * Check, using disk_free_space, the space available in the $destination_folder 
+     * folder to see if it has enough space to move the $audio_file into and report 
+     * back to the user if not.
      **/
     public static function checkForEnoughDiskSpaceToCopy($destination_folder, $audio_file){
         //check to see if we have enough space in the /organize directory to copy the file
