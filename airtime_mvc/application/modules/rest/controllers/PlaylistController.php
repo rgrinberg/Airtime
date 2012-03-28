@@ -26,6 +26,7 @@ class Rest_PlaylistController extends Zend_Controller_Action
     public function getAction()
     {
         Logging::log(__CLASS__.":".__FUNCTION__);
+        //var_dump($this->_request);
         try {
             $id = $this->_getParam("id");
     
@@ -38,6 +39,7 @@ class Rest_PlaylistController extends Zend_Controller_Action
                 return;                
             }
             $outPl = array();
+            $outPl["link"] = array("href" => $this->getBaseUrl()."/".$pl->getId(), "rel"=>"self");
             $outPl["name"] = $pl->getName();
             $outPl["description"] = $pl->getDescription();
             $outPl["contents"] = $pl->getContents();
@@ -51,14 +53,44 @@ class Rest_PlaylistController extends Zend_Controller_Action
         }
     }
 
+    private function getBaseUrl()
+    {
+        global $CC_CONFIG;
+        
+        if (isset($CC_CONFIG['baseUrl'])){
+            $serverName = $CC_CONFIG['baseUrl'];
+        } else {
+            $serverName = $_SERVER['SERVER_NAME'];
+        }
+        
+        if (isset($CC_CONFIG['basePort'])){
+            $serverPort = $CC_CONFIG['basePort'];
+        } else {
+            $serverPort = $_SERVER['SERVER_PORT'];
+        }
+        
+        return "http://$serverName:$serverPort"
+                ."/".$this->_request->getModuleName()
+                ."/".$this->_request->getControllerName();
+    }
+    
     /**
      * Create a new playlist.
      */
     public function putAction()
     {
         Logging::log(__CLASS__.":".__FUNCTION__);
+        var_dump($this->_getAllParams());
         $pl = new Application_Model_Playlist();
-        echo json_encode($pl->getId());
+        $pl->setName($this->getParam("name"));
+        
+        $out = array();
+        $out["id"] = $pl->getId();
+        $out["link"] = array("href" => $this->getBaseUrl."/".$pl->getId(), "rel" => "self");
+        
+        $this->getResponse()
+            ->setHttpResponseCode(200)
+            ->appendBody(json_encode($out)."\n");
     }
     
 }

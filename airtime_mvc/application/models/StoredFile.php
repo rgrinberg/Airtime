@@ -394,8 +394,8 @@ class Application_Model_StoredFile {
         return $this->constructGetFileUrl($serverName, $serverPort);
     }
 
-    private function constructGetFileUrl($p_serverName, $p_serverPort){
-Logging::log("getting media! - 2");
+    private function constructGetFileUrl($p_serverName, $p_serverPort)
+    {
         return "http://$p_serverName:$p_serverPort/api/get-media/file/".$this->getGunId().".".$this->getFileExtension();
     }
 
