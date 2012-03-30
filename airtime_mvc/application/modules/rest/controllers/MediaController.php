@@ -7,7 +7,7 @@ class Rest_MediaController extends Zend_Controller_Action
                                    "DbGunid" => "gunid",
                                    "DbMime" => "mime",
                                    "DbFtype" => "type",
-                                   "DbMtime" => "modified",
+                                   "DbMtime" => "modified_time",
                                    "DbTrackTitle" => "title",
                                    "DbArtistName" => "artist",
                                    "DbAlbumTitle" => "album",
@@ -152,7 +152,7 @@ class Rest_MediaController extends Zend_Controller_Action
         if (empty($id)) {
             // if not found, return 404
             $this->getResponse()->setHttpResponseCode(404)
-                ->appendBody("Please specify a media ID.\n");
+                ->appendBody("Please specify an ID.\n");
             return;
         }
         
