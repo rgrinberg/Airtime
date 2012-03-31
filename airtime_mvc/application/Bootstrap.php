@@ -39,7 +39,7 @@ $front = Zend_Controller_Front::getInstance();
 $front->registerPlugin(new RabbitMqPlugin());
 $front->registerPlugin(new Rest_Acl_Plugin());
 
-Logging::log($_SERVER['REQUEST_URI']);
+Logging::log("URI: ".$_SERVER['REQUEST_URI']);
 
 /* The bootstrap class should only be used to initialize actions that return a view.
    Actions that return JSON will not use the bootstrap class! */
@@ -147,10 +147,16 @@ class Bootstrap extends Zend_Application_Bootstrap_Bootstrap
                 'action' => 'password-change',
             )));
         
-        $frontController = Zend_Controller_Front::getInstance();
-        $restRoute = new Zend_Rest_Route($frontController, array(), array("rest"));
-        $frontController->getRouter()->addRoute('rest', $restRoute);
-        
+        $restRoute = new Zend_Rest_Route($front, array(), array("rest"));
+        $router->addRoute('rest', $restRoute);
+        $router->addRoute('rest-playlist-content', 
+            new Zend_Controller_Router_Route('rest/playlist/:id/content',
+                array('module' => 'rest',
+                      'controller' => 'playlistcontent')));
+        $router->addRoute('rest-playlist-content-id', 
+            new Zend_Controller_Router_Route('rest/playlist/:id/content/:position',
+                array('module' => 'rest',
+                      'controller' => 'playlistcontent')));
     }
     
 }

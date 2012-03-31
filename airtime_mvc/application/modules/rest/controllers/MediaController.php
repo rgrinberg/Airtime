@@ -27,10 +27,9 @@ class Rest_MediaController extends Zend_Controller_Action
     public static function getRestUrl($p_id = null)
     {
         global $CC_CONFIG;
-        $url = $CC_CONFIG["rest_base_url"]."media";
-        if (!is_null($p_id)) {
-            $url .= "/$p_id";
-        }
+        $url = $CC_CONFIG["rest_base_url"];
+        $router = Zend_Controller_Front::getInstance()->getRouter();
+        $url .= $router->assemble(array($p_id));                
         return $url;
     }
     
@@ -48,7 +47,7 @@ class Rest_MediaController extends Zend_Controller_Action
         foreach (self::$displayColumns as $key => $value) {
             $result2[$value] = $result[$key];
         }
-        $result2["link"] = array("self" => self::getRestUrl($result["DbId"]));                
+        $result2["link"] = array("self" => self::getRestUrl($result["DbId"]));
         return $result2;
     }
     

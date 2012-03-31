@@ -1,4 +1,5 @@
 <?php
+require_once("PlaylistcontentController.php");
 
 class Rest_PlaylistController extends Zend_Controller_Action
 {
@@ -13,40 +14,40 @@ class Rest_PlaylistController extends Zend_Controller_Action
     public static function getRestUrl($p_id = null)
     {
         global $CC_CONFIG;
-        $base = $CC_CONFIG["rest_base_url"]."playlist";
-        if (!is_null($p_id)) {
-            $base .= "/$p_id";
-        }
-        return $base;
-    }
-    
-    private static function getUrlRef($p_url) 
-    {
-        $outPl["link"] = array("self" => $this->getRestUrl($pl->getDbId()));
-        
+        $url = $CC_CONFIG["rest_base_url"];
+        $router = Zend_Controller_Front::getInstance()->getRouter();
+        $url .= $router->assemble(array($p_id));
+        return $url;
     }
     
     /**
      * Generate public representation of a media item.
-     *
-     * @param array $p_array
+     * Used when converting from internal DB format to public format.
+     * 
+     * @param CcPlaylist $p_playlist
      * @return array
      */
-    public static function formatData($p_array)
+    public static function formatData($p_playlist, $p_withContents = false)
     {
+        
+        //var_dump($p_playlist);
+        $pl_array = $p_playlist->toArray();
         // cut out all data we dont care about
-        $result = array_intersect_key($p_array, self::$displayColumns);
+        $result = array_intersect_key($pl_array, self::$displayColumns);
+        //var_dump($result);
         // rename the keys (this part could be taken care of through propel)
         foreach (self::$displayColumns as $key => $value) {
             $result2[$value] = $result[$key];
         }
+        if ($p_withContents) {
+            $contents = $p_playlist->getCcPlaylistcontentss();
+            foreach ($contents as $item) {
+                $result2["contents"][] = Rest_PlaylistcontentController::formatData($item);
+            }
+        }
+        //var_dump($result2);
+        
         $result2["link"] = array("self" => self::getRestUrl($result["DbId"]));
-            // add in self ref URLs to the contents
-//         foreach ($outPl["contents"] as $key => $mediaItem) {
-//             $outPl["contents"][$key]["link"] = Rest_MediaController::getRestUrl();
-//                 array("href" => Rest_MediaController::getRestUrl($mediaItem["DbId"]),
-//                       "rel" => "self");
-//         }
         return $result2;
     }
     
@@ -111,6 +112,7 @@ class Rest_PlaylistController extends Zend_Controller_Action
     public function getAction()
     {
         Logging::log(__CLASS__.":".__FUNCTION__);
+        var_dump($this->_getAllParams());
         try {
             $id = $this->_getParam("id");
     
@@ -124,7 +126,7 @@ class Rest_PlaylistController extends Zend_Controller_Action
                     ->appendBody("Playlist $id not found.\n");
                 return;                
             }
-            $outPl = self::formatData($pl);
+            $outPl = self::formatData($pl, true);
                         
             $this->getResponse()
                 ->setHttpResponseCode(200)
@@ -178,8 +180,7 @@ class Rest_PlaylistController extends Zend_Controller_Action
         $pl->save();
         
         // Send updated media info
-        $pl = $pl->toArray();
-        $pl = self::formatData($pl);
+        $pl = self::formatData($pl, true);
         $this->getResponse()
             ->setHttpResponseCode(200)
             ->appendBody(json_encode($pl)."\n");        
