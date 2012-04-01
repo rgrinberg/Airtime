@@ -44,7 +44,7 @@ class Rest_Bootstrap extends Zend_Application_Module_Bootstrap
             $serverPort = $_SERVER['SERVER_PORT'];
         }
         
-        $CC_CONFIG["rest_base_url"] = "http://$serverName:$serverPort"; 
+        $CC_CONFIG["rest_base_url"] = "http://$serverName:$serverPort/rest"; 
     }  
 
 }

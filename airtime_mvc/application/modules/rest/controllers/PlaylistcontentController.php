@@ -15,12 +15,13 @@ class Rest_PlaylistcontentController extends Zend_Controller_Action
      
     static $updateColumns = array("position", "cuein", "cueout", "fadein", "fadeout");
     
-    public static function getRestUrl($p_id = null, $p_position = null)
+    public static function getRestUrl($p_id, $p_contentId = null)
     {
         global $CC_CONFIG;
-        $url = $CC_CONFIG["rest_base_url"];
-        $router = Zend_Controller_Front::getInstance()->getRouter();
-        $url .= $router->assemble(array($p_id, $p_position));
+        $url = $CC_CONFIG["rest_base_url"]."/playlist/$p_id/content";
+        if (!is_null($p_contentId)) {
+            $url .= "/$p_contentId";
+        }
         return $url;
     }
     
@@ -41,8 +42,11 @@ class Rest_PlaylistcontentController extends Zend_Controller_Action
         foreach (self::$displayColumns as $key => $value) {
             $result2[$value] = $result[$key];
         }
-        $trackInfo = Rest_MediaController::formatData($p_playlistContentItem->getCcFiles());
-        $result2 = array_merge($result2, $trackInfo);
+        $file = $p_playlistContentItem->getCcFiles();
+        if (!is_null($file)) {
+            $trackInfo = Rest_MediaController::formatData($file);
+            $result2 = array_merge($result2, $trackInfo);
+        }
         //$result2["link"] = array("self" => self::getRestUrl($result["DbId"], $result["DbPosition"]));
         return $result2;
     }
@@ -135,77 +139,68 @@ class Rest_PlaylistcontentController extends Zend_Controller_Action
     }
 
     /**
-     * Add a clip to a playlist.
+     * Add content to a playlist.
+     * 
+     * To insert:
+     * - position
+     * - file ID
+     * - playlist ID
+     * 
      */
     public function postAction()
     {
         Logging::log(__CLASS__.":".__FUNCTION__);
         
         // Check param
-//         $id = $this->_getParam("id");
-//         if (empty($id)) {
-//             // if not found, return 404
-//             $this->getResponse()->setHttpResponseCode(404)
-//                 ->appendBody("Please specify an ID.\n");
-//             return;
-//         }
+        $id = $this->_getParam("id");
+        $contentId = $this->_getParam("contentid");
+        if (empty($id)) {
+            // if not found, return 404
+            $this->getResponse()->setHttpResponseCode(404)
+                ->appendBody("Please specify an ID.\n");
+            return;
+        }
         
-//         // Find 
-//         $pl = CcPlaylistQuery::create()->findOneByDbId($id);
-//         if (is_null($pl)) {
-//             // if not found, return 404
-//             $this->getResponse()->setHttpResponseCode(404)
-//                 ->appendBody("Playlist $id not found.\n");
-//             return;
-//         }
+        // Find 
+        $item = CcPlaylistcontentsQuery::create()->findOneByDbId($contentId);
+        if (is_null($item)) {
+            // if not found, return 404
+            $this->getResponse()->setHttpResponseCode(404)
+                ->appendBody("Playlist content item $contentId not found.\n");
+            return;
+        }
         
-//         // Update values
-//         $params = Rest_RemoveDefaultParams($this->_getAllParams());
-//         foreach ($params as $key => $value) {
-//             // check if this value is allowed to be updated
-//             if (in_array($key, self::$updateColumns)) {
-//                 // map public key to internal key
-//                 if ($internalKey = array_search($key, self::$displayColumns)) {
-//                     $methodName = "set$internalKey";
-//                     $pl->$methodName($value);
-//                 }
-//             } else {
-//                 $this->getResponse()->setHttpResponseCode(404)
-//                     ->appendBody("Not allowed to update field '$key'.\n");
-//                 return;
-//             }
-//         }
-//         $pl->save();
+        // Update values
+        $params = Rest_RemoveDefaultParams($this->_getAllParams());
+        foreach ($params as $key => $value) {
+            // check if this value is allowed to be updated
+            if (in_array($key, self::$updateColumns)) {
+                // map public key to internal key
+                if ($internalKey = array_search($key, self::$displayColumns)) {
+                    $methodName = "set$internalKey";
+                    $item->$methodName($value);
+                }
+            } else {
+                $this->getResponse()->setHttpResponseCode(404)
+                    ->appendBody("Not allowed to update field '$key'.\n");
+                return;
+            }
+        }
+        $item->save();
         
-//         // Send updated media info
-//         $pl = $pl->toArray();
-//         $pl = self::formatData($pl);
-//         $this->getResponse()
-//             ->setHttpResponseCode(200)
-//             ->appendBody(json_encode($pl)."\n");        
+        // Send updated media info
+        $item = self::formatData($item);
+        $this->getResponse()
+            ->setHttpResponseCode(200)
+            ->appendBody(json_encode($item)."\n");        
     }
     
     /**
-     * Create a new playlist.
+     * Update an item that already exists.
      */
     public function putAction()
     {
         Logging::log(__CLASS__.":".__FUNCTION__);
-        //var_dump($this->_getAllParams());
-//         $name = $this->_getParam("name");
-//         if (empty($name)) {
-            
-//         }
-//         $pl = new Application_Model_Playlist();
-//         $pl->setName($this->getParam("name"));
-        
-//         $out = array();
-//         $out["id"] = $pl->getId();
-//         $out["link"] = array("href" => $this->getBaseUrl."/".$pl->getId(), "rel" => "self");
-        
-//         $this->getResponse()
-//             ->setHttpResponseCode(200)
-//             ->appendBody(json_encode($out)."\n");
     }
     
     /**

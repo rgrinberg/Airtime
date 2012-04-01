@@ -27,9 +27,10 @@ class Rest_MediaController extends Zend_Controller_Action
     public static function getRestUrl($p_id = null)
     {
         global $CC_CONFIG;
-        $url = $CC_CONFIG["rest_base_url"];
-        $router = Zend_Controller_Front::getInstance()->getRouter();
-        $url .= $router->assemble(array($p_id));                
+        $url = $CC_CONFIG["rest_base_url"]."/media";
+        if (!is_null($p_id)) {
+            $url .= "/$p_id";
+        }
         return $url;
     }
     

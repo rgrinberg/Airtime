@@ -14,9 +14,10 @@ class Rest_PlaylistController extends Zend_Controller_Action
     public static function getRestUrl($p_id = null)
     {
         global $CC_CONFIG;
-        $url = $CC_CONFIG["rest_base_url"];
-        $router = Zend_Controller_Front::getInstance()->getRouter();
-        $url .= $router->assemble(array($p_id));
+        $url = $CC_CONFIG["rest_base_url"]."/playlist";
+        if (!is_null($p_id)) {
+            $url .= "/$p_id";
+        }
         return $url;
     }
     
@@ -94,7 +95,7 @@ class Rest_PlaylistController extends Zend_Controller_Action
         // format the results
         $result = array();
         foreach ($playlists as $item) {
-            $result[] = self::formatData($item->toArray());
+            $result[] = self::formatData($item);
         }
         
         if (isset($params["orderby"]) && ($params["orderby"] == "random")) {
@@ -137,9 +138,32 @@ class Rest_PlaylistController extends Zend_Controller_Action
     }
 
     /**
-     * Update an existing playlist.
+     * Create a new playlist.
      */
     public function postAction()
+    {
+        Logging::log(__CLASS__.":".__FUNCTION__);
+        //var_dump($this->_getAllParams());
+        $name = $this->_getParam("name");
+        if (empty($name)) {
+            echo "error\n";
+            return;
+        }
+        $pl = new Application_Model_Playlist();
+        $pl->setName($name);
+        
+        $result = CcPlaylistQuery::create()->findOneByDbId($pl->getId());
+        $out = self::formatData($result);
+        
+        $this->getResponse()
+            ->setHttpResponseCode(201)
+            ->appendBody(json_encode($out)."\n");
+    }
+    
+    /**
+     * Update an existing playlist.
+     */
+    public function putAction()
     {
         Logging::log(__CLASS__.":".__FUNCTION__);
         
@@ -184,29 +208,6 @@ class Rest_PlaylistController extends Zend_Controller_Action
         $this->getResponse()
             ->setHttpResponseCode(200)
             ->appendBody(json_encode($pl)."\n");        
-    }
-    
-    /**
-     * Create a new playlist.
-     */
-    public function putAction()
-    {
-        Logging::log(__CLASS__.":".__FUNCTION__);
-        //var_dump($this->_getAllParams());
-        $name = $this->_getParam("name");
-        if (empty($name)) {
-            
-        }
-        $pl = new Application_Model_Playlist();
-        $pl->setName($this->getParam("name"));
-        
-        $out = array();
-        $out["id"] = $pl->getId();
-        $out["link"] = array("href" => $this->getBaseUrl."/".$pl->getId(), "rel" => "self");
-        
-        $this->getResponse()
-            ->setHttpResponseCode(200)
-            ->appendBody(json_encode($out)."\n");
     }
     
     /**
