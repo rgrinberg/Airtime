@@ -36,13 +36,14 @@ class Rest_MediaController extends Zend_Controller_Action
     /**
      * Generate public representation of a media item.
      * 
-     * @param array $p_array
+     * @param CcFiles $p_file
      * @return array
      */
-    public static function formatData($p_array)
+    public static function formatData($p_file)
     {
+        $fileArray = $p_file->toArray();
         // cut out all data we dont care about
-        $result = array_intersect_key($p_array, self::$displayColumns);
+        $result = array_intersect_key($fileArray, self::$displayColumns);
         // rename the keys (this part could be taken care of through propel)
         foreach (self::$displayColumns as $key => $value) {
             $result2[$value] = $result[$key];
@@ -101,7 +102,7 @@ class Rest_MediaController extends Zend_Controller_Action
         // format the results
         $result = array();
         foreach ($media as $item) {
-            $result[] = self::formatData($item->toArray());
+            $result[] = self::formatData($item);
         }
         
         if (isset($params["orderby"]) && ($params["orderby"] == "random")) {
@@ -128,7 +129,6 @@ class Rest_MediaController extends Zend_Controller_Action
                 $this->getResponse()->setHttpResponseCode(404)
                     ->appendBody("Track $id not found.\n");
             } else {
-                $media = $media->toArray();
                 $media = self::formatData($media);
                 $this->getResponse()
                     ->setHttpResponseCode(200)
@@ -183,7 +183,6 @@ class Rest_MediaController extends Zend_Controller_Action
         $media->save();
         
         // Send updated media info
-        $media = $media->toArray();
         $media = self::formatData($media);
         $this->getResponse()
             ->setHttpResponseCode(200)

@@ -154,7 +154,7 @@ class Bootstrap extends Zend_Application_Bootstrap_Bootstrap
                 array('module' => 'rest',
                       'controller' => 'playlistcontent')));
         $router->addRoute('rest-playlist-content-id', 
-            new Zend_Controller_Router_Route('rest/playlist/:id/content/:position',
+            new Zend_Controller_Router_Route('rest/playlist/:id/content/:contentid',
                 array('module' => 'rest',
                       'controller' => 'playlistcontent')));
     }

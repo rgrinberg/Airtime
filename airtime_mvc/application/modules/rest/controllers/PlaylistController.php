@@ -112,7 +112,7 @@ class Rest_PlaylistController extends Zend_Controller_Action
     public function getAction()
     {
         Logging::log(__CLASS__.":".__FUNCTION__);
-        var_dump($this->_getAllParams());
+        //var_dump($this->_getAllParams());
         try {
             $id = $this->_getParam("id");
     

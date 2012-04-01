@@ -1,4 +1,5 @@
 <?php
+require_once("MediaController.php");
 
 class Rest_PlaylistcontentController extends Zend_Controller_Action
 {
@@ -31,15 +32,17 @@ class Rest_PlaylistcontentController extends Zend_Controller_Action
      */
     public static function formatData($p_playlistContentItem)
     {
-        //echo "got here\n";
         $content = $p_playlistContentItem->toArray();
         //var_dump($content);
+        
         // cut out all data we dont care about
         $result = array_intersect_key($content, self::$displayColumns);
         // rename the keys (this part could be taken care of through propel)
         foreach (self::$displayColumns as $key => $value) {
             $result2[$value] = $result[$key];
         }
+        $trackInfo = Rest_MediaController::formatData($p_playlistContentItem->getCcFiles());
+        $result2 = array_merge($result2, $trackInfo);
         //$result2["link"] = array("self" => self::getRestUrl($result["DbId"], $result["DbPosition"]));
         return $result2;
     }
@@ -57,16 +60,19 @@ class Rest_PlaylistcontentController extends Zend_Controller_Action
     public function indexAction()
     {
         Logging::log(__CLASS__.":".__FUNCTION__);
-        $id = $this->_getParam("id");
+        $contentId = $this->_getParam("contentid");
+        //var_dump($contentId);
         
-        // Use dumb routing for the moment
+        // Use dumb routing for the moment - route everything
+        // not intended for the index controller to it's specified method.
         $requestType = $this->getRequest()->getMethod();
-        if (!(is_null($id) && $requestType == "GET")) {
+        if (!(is_null($contentId) && $requestType == "GET")) {
             $methodName = strtolower($requestType)."Action";
             $this->$methodName();
             return;
         } 
         
+        $id = $this->_getParam("id");
         //var_dump($this->_getAllParams());
         $params = Rest_RemoveDefaultParams($this->_getAllParams());
         // Set limit
@@ -76,6 +82,7 @@ class Rest_PlaylistcontentController extends Zend_Controller_Action
         $query = CcPlaylistcontentsQuery::create();
         $query->filterByDbPlaylistId($id);
         $query->limit($limit);
+        $query->joinWith("CcFiles");
         foreach ($params as $key => $value) {
             // map public key to internal key
             if ($internalKey = array_search($key, self::$displayColumns)) {
@@ -99,24 +106,22 @@ class Rest_PlaylistcontentController extends Zend_Controller_Action
     }
     
     /**
-     * Fetch the requested playlist content item, indexed by position starting at zero.
+     * Fetch the requested playlist content item.
      */
     public function getAction()
     {
         Logging::log(__CLASS__.":".__FUNCTION__);
-        var_dump($this->_getAllParams());
+        //var_dump($this->_getAllParams());
         try {
-            $id = $this->_getParam("id");
-            $position = $this->_getParam("position");
+            $contentId = $this->_getParam("contentid");
             $pl = CcPlaylistcontentsQuery::create()
-                ->filterByDbPlaylistId($id)
-                ->filterByDbPosition($position)
+                ->filterByDbId($contentId)
                 ->findOne();
 
             if (is_null($pl)) {
                 // if not found, return 404
                 $this->getResponse()->setHttpResponseCode(404)
-                    ->appendBody("Playlist content item at position $position not found.\n");
+                    ->appendBody("Playlist content item $contentId not found.\n");
                 return;                
             }
             $outPl = self::formatData($pl);
@@ -130,7 +135,7 @@ class Rest_PlaylistcontentController extends Zend_Controller_Action
     }
 
     /**
-     * Update an existing playlist.
+     * Add a clip to a playlist.
      */
     public function postAction()
     {
@@ -211,18 +216,19 @@ class Rest_PlaylistcontentController extends Zend_Controller_Action
         Logging::log(__CLASS__.":".__FUNCTION__);
         try {
             $id = $this->_getParam("id");
-            $position = $this->_getParam("position");
+            $contentId = $this->_getParam("contentid");
+            
             $item = CcPlaylistcontentsQuery::create()
-                ->filterByDbPlaylistId($id)
-                ->filterByDbPosition($position)
+                ->filterByDbId($contentId)
                 ->findOne();
         
             if (is_null($item)) {
                 // if not found, return 404
                 $this->getResponse()->setHttpResponseCode(404)
-                    ->appendBody("Playlist content item at position $position not found.\n");
+                    ->appendBody("Playlist content item $contentId not found.\n");
             } else {
-                $item->delete();
+                $playlist = new Application_Model_Playlist($id);
+                $playlist->delAudioClips(array($contentId));
                 $this->getResponse()
                     ->setHttpResponseCode(200);
             }
