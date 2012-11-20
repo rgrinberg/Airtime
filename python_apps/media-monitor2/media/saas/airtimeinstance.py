@@ -19,6 +19,9 @@ class AirtimeInstance(object):
 
     @classmethod
     def root_make(cls, name, root):
+        """ A convenience method to initialize an airtime instance by
+        assuming the directory structure """
+        
         cfg = {
                 'api_client' : join(root, 'etc/airtime/api_client.cfg'),
                 'media_monitor' : join(root, 'etc/airtime/media-monitor.cfg'),
